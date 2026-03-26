@@ -1,0 +1,409 @@
+<?php
+
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\AuthController;
+
+
+
+// Removed unused imports
+use App\Http\Controllers\StockController;
+//test
+use App\Http\Controllers\MercadoLibre\Products\testingController;
+
+//  REPORTES //
+use \App\Http\Controllers\MercadoLibre\Reportes\getDeliveredShipmentsController;
+use App\Http\Controllers\MercadoLibre\Reportes\compareAnnualSalesDataController;
+use App\Http\Controllers\MercadoLibre\Reportes\compareSalesDataController;
+use App\Http\Controllers\MercadoLibre\Reportes\getAnnualSalesController;
+use App\Http\Controllers\MercadoLibre\Reportes\getDailySalesController;
+use App\Http\Controllers\MercadoLibre\Reportes\getInvoiceReportController;
+use App\Http\Controllers\MercadoLibre\Reportes\getOrderStatusesController;
+use App\Http\Controllers\MercadoLibre\Reportes\getRefundsByCategoryController;
+use App\Http\Controllers\MercadoLibre\Reportes\getSalesByWeekController;
+use App\Http\Controllers\MercadoLibre\Reportes\getSalesByMonthController;
+use App\Http\Controllers\MercadoLibre\Reportes\getTopPaymentMethodsController;
+use App\Http\Controllers\MercadoLibre\Reportes\getTopSellingProductsController;
+use App\Http\Controllers\MercadoLibre\Reportes\getWeeksOfMonthController;
+use App\Http\Controllers\MercadoLibre\Reportes\summaryController;
+use App\Http\Controllers\MercadoLibre\Reportes\getSalesByDateRangeController;
+use App\Http\Controllers\MercadoLibre\Reportes\ReviewController;
+use App\Http\Controllers\MercadoLibre\Reportes\productReportController;
+use App\Http\Controllers\MercadoLibre\Reportes\getStockRotationController;
+use App\Http\Controllers\MercadoLibre\Reportes\getStockReceptionController;
+use App\Http\Controllers\MercadoLibre\Reportes\getAvailableForReceptionController;
+use App\Http\Controllers\MercadoLibre\Reportes\getProductsToDispatchController;
+use App\Http\Controllers\MercadoLibre\Reportes\getStockSalesHistoryController;
+use App\Http\Controllers\MercadoLibre\Reportes\getHistoryDispatchController;
+use App\Http\Controllers\MercadoLibre\Reportes\getStockCriticController; // trae mil ml
+use App\Http\Controllers\MercadoLibre\Reportes\getUpcomingShipmentsController;
+use App\Http\Controllers\MercadoLibre\Reportes\getDispatchEstimedLimitController;
+use App\Http\Controllers\MercadoLibre\Reportes\getInformationDispatchDeliveredController;
+use App\Http\Controllers\MercadoLibre\Reportes\getCancelledOrdersController;
+use App\Http\Controllers\MercadoLibre\Reportes\getProductSellerController;
+use App\Http\Controllers\MercadoLibre\Reportes\getCompaniesProductsController;
+use App\Http\Controllers\MercadoLibre\Reportes\getCancelledCompaniesController;
+use App\Http\Controllers\MercadoLibre\Reportes\getChinaCarrier;
+
+use App\Http\Controllers\MercadoLibre\Reportes\getTestproductoMLController;
+
+// Bodegas //
+use App\Http\Controllers\Warehouses\warehouseListAllController;
+use App\Http\Controllers\Warehouses\warehouseCompanyListController;
+use App\Http\Controllers\Warehouses\warehouseNewCompanyController;
+use App\Http\Controllers\Warehouses\warehouseNewWarehouseStoreController;
+use App\Http\Controllers\Warehouses\warehouseShowByIdController;
+use App\Http\Controllers\Warehouses\warehouseUpdateCompanyNameController;
+use App\Http\Controllers\Warehouses\warehouseUpdateDetailsController;
+use App\Http\Controllers\Warehouses\warehouseDeleteCompanyByIdController;
+use App\Http\Controllers\Warehouses\warehouseDeleteWarehouseByIdController;
+use App\Http\Controllers\Warehouses\warehouseGetStockByWarehouseController;
+use App\Http\Controllers\Warehouses\warehouseCreateProductStockWarehouseController;
+use App\Http\Controllers\Warehouses\warehouseUpdateStockForWarehouseController;
+use App\Http\Controllers\Warehouses\warehouseDeleteStockController;
+use App\Http\Controllers\Warehouses\warehouseCompanyShowController;
+use App\Http\Controllers\Warehouses\getCompareStockByProductiDController;
+use App\Http\Controllers\Warehouses\getPriceNetoStockController;
+use App\Http\Controllers\Warehouses\getWarehouseByCompanyIdController;
+use App\Http\Controllers\Warehouses\warehouseCreateMasiveProductStockController;
+
+// Punto de venta //
+use App\Http\Controllers\SalePoint\createNewClientController;
+use App\Http\Controllers\SalePoint\clientAllListController;
+use App\Http\Controllers\SalePoint\getProductByCompanyIdController;
+use App\Http\Controllers\SalePoint\generatedSaleNoteController;
+use App\Http\Controllers\SalePoint\getHistorySaleController;
+use App\Http\Controllers\SalePoint\getHistoryPendientController;
+use App\Http\Controllers\SalePoint\getHistorySalePatchStatusController;
+use App\Http\Controllers\SalePoint\getDeleteHistoryByIdSaleController;
+use App\Http\Controllers\SalePoint\getSearchSaleByFolioController;
+use App\Http\Controllers\SalePoint\putSaleNoteByFolioController;
+use App\Http\Controllers\SalePoint\postDocumentSaleController;
+use App\Http\Controllers\SalePoint\getDocumentByDownloadController;
+use App\Http\Controllers\SalePoint\getAllHistorySaleIssueController;
+use App\Http\Controllers\SalePoint\getAllHistorySaleFinishController;
+use App\Http\Controllers\SalePoint\putSaleNoteController;
+// LOGIN //
+
+use App\Http\Controllers\MercadoLibre\Login\loginController;
+use App\Http\Controllers\MercadoLibre\Login\handleCallbackController;
+
+// Conexiones //
+
+use App\Http\Controllers\MercadoLibre\Connections\testAndRefreshConnectionController;
+use App\Http\Controllers\MercadoLibre\Connections\ConexionTokenController;
+
+// Credenciales //
+
+use App\Http\Controllers\MercadoLibre\Credentials\deleteCredentialsController;
+use App\Http\Controllers\MercadoLibre\Credentials\getAllCredentialsDataController;
+use App\Http\Controllers\MercadoLibre\Credentials\getCredentialsByClientIdController;
+use App\Http\Controllers\MercadoLibre\Credentials\refreshAccessTokenController;
+
+//  Productos  //
+
+use App\Http\Controllers\MercadoLibre\Products\listProductByClientIdController;
+use App\Http\Controllers\MercadoLibre\Products\searchProductsController;
+use App\Http\Controllers\MercadoLibre\Products\SyncWithWooCommerceController;
+//use App\Http\Controllers\MercadoLibre\Products\getProductReviewsController;
+use App\Http\Controllers\MercadoLibre\Products\saveProductsController;
+use App\Http\Controllers\MercadoLibre\Products\itemController;
+use App\Http\Controllers\MercadoLibre\Products\getStockController;
+use App\Http\Controllers\MercadoLibre\Products\putProductoByUpdateController;
+use App\Http\Controllers\MercadoLibre\Products\CreateProductController;
+use App\Http\Controllers\MercadoLibre\Products\CreateProductsMasiveController;
+use App\Http\Controllers\MercadoLibre\Products\getCatalogProductController;
+use App\Http\Controllers\MercadoLibre\Products\getCategoriaController;
+use App\Http\Controllers\MercadoLibre\Products\getAtributosCategoriaController;
+use App\Http\Controllers\MercadoLibre\Products\getSpecsDomainController;
+use App\Http\Controllers\MercadoLibre\Products\UploadProductsToMultipleStoresController;
+//use App\Http\Controllers\MercadoLibre\Products\getExcelCargaMasivaMLController;
+use App\Http\Controllers\MercadoLibre\Products\getProductosExcelController;
+
+//Tallas mercado libre
+
+use App\Http\Controllers\MercadoLibre\Products\SizeGridController;
+// woocommerce //
+use App\Http\Controllers\Woocommerce\WooStoreController;
+use App\Http\Controllers\Woocommerce\WooProductController;
+use App\Http\Controllers\Woocommerce\WooCategoryController;
+
+
+// SyncStatus //
+use App\Http\Controllers\SyncStatusController;
+
+// Conexiones y Credenciales de MercadoLibre
+
+// Auth //
+use App\Http\Controllers\RolController;
+
+
+
+// Rutas públicas
+Route::post('/login', [AuthController::class, 'login']); // Iniciar sesión de usuario
+Route::post('/users', [UserController::class, 'store']); // Crear usuario
+
+//Reenvio Correo
+Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail']);
+
+// Rutas// MERCADOLIBRE (Agrupados por tema)
+Route::prefix('mercadolibre')->group(function () {
+    // 1. Credenciales y Conexiones (Endpoints faltantes para el Frontend)
+    Route::get('/credentials', [getAllCredentialsDataController::class, 'getAllCredentialsData']);
+    Route::delete('/credentials/{clientId}', [deleteCredentialsController::class, 'deleteCredentials']);
+    Route::get('/conexion', [ConexionTokenController::class, 'index']);
+    Route::get('/test-connection/{clientId}', [testAndRefreshConnectionController::class, 'testAndRefreshConnection']);
+
+    // 2. Auth y Callback (login)
+    Route::post('/login', [\App\Http\Controllers\MercadoLibre\Login\loginController::class, 'login']); 
+});
+
+// Rutas protegidas
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']); // Cerrar sesión
+
+    Route::post('/user/change-password', [AuthController::class, 'changePassword'])->middleware('auth:sanctum'); //cambiar contraseña
+
+    // Asignar roles
+    Route::put('/users/{id}/asignar-rol', [UserController::class, 'asignarRol'])->middleware(['auth:sanctum', 'role:admin,RRHH']);
+
+
+    //Verificar correo electrónico
+
+    Route::get('/dashboard', function () {})->middleware('verified');
+
+    Route::middleware(['token.cached'])->group(function () {
+
+        // Verificar estado del correo electrónico
+        Route::middleware('auth:sanctum')->post('/email/verified-status', [AuthController::class, 'emailVerifiedStatus']);
+
+        Route::middleware('auth:sanctum')->get('/user/profile', function (Request $request) {
+            return response()->json(['user' => $request->user()]);
+        });
+
+        // Ruta protegida
+        Route::middleware(['auth:sanctum', 'role:admin,finanzas'])->group(function () {
+            Route::get('/history-sale/{client_id}', [getHistorySaleController::class, 'getHistorySale']);
+        });
+    });
+    // USUARIOS
+    Route::get('/users', [UserController::class, 'usersList'])->middleware('role:admin,Admin Master,RRHH'); // Obtener lista de usuarios
+    Route::get('/users/{id}', [UserController::class, 'show']); // Obtener usuario específico
+    Route::patch('/users/{id}', [UserController::class, 'update'])->middleware('role:admin,Admin Master,RRHH'); // Actualizar usuario
+    Route::delete('/users/{id}', [UserController::class, 'delete'])->middleware('role:admin,Admin Master'); // Eliminar usuario
+
+
+
+    // ROL
+    Route::get('/roles', [RolController::class, 'index'])->middleware('role:admin,Admin Master,RRHH'); // Obtener todos los roles
+    Route::post('/roles/nuevo', [RolController::class, 'store'])->middleware('role:admin,Admin Master'); // Crear rol
+    Route::delete('/roles/{id}', [RolController::class, 'destroy'])->middleware('role:admin,Admin Master'); // Eliminar rol
+    Route::put('/roles/{id}', [RolController::class, 'update'])->middleware('role:admin,Admin Master'); // Actualizar rol
+
+    // SINCRONIZACIÓN
+    Route::post('/sincronizar', [SyncStatusController::class, 'iniciarSincronizacion']); // Iniciar sincronización
+    Route::get('/estado-sincronizacion', [SyncStatusController::class, 'estadoSincronizacion']); // Estado de sincronización
+    /*
+    // CRUD Clientes
+    Route::get('/clientes', [ClientesController::class, 'index']); // Obtener todos los clientes
+    Route::post('/clientes', [ClientesController::class, 'store']); // Crear cliente
+    Route::get('/clientes/{id}', [ClientesController::class, 'show']); // Obtener cliente específico
+    Route::patch('/clientes/{id}', [ClientesController::class, 'update']); // Actualizar cliente
+    Route::delete('/clientes/{id}', [ClientesController::class, 'destroy']); // Eliminar cliente
+*/
+    // BODEGAS (CRUD completo)
+    Route::get("/warehouses-list", [warehouseCompanyListController::class, 'warehouse_list_all']); // Listar todas las bodegas planamente para frontend
+    // Alias /companies → ver sección EMPRESAS (línea 239)
+    Route::get('/warehouses/{id}', [warehouseShowByIdController::class, 'warehouse_show']); // Ver bodega específica
+    Route::post('/warehouses', [warehouseNewWarehouseStoreController::class, 'warehouse_store'])->middleware('role:admin,Admin Master'); // Crear bodega
+    Route::patch('/warehouses/{id}', [warehouseUpdateDetailsController::class, 'warehouse_update'])->middleware('role:admin,Admin Master'); // Actualizar bodega
+    Route::delete('/warehouses/{id}', [warehouseDeleteWarehouseByIdController::class, 'warehouse_delete'])->middleware('role:admin,Admin Master'); // Eliminar bodega
+    Route::get('/warehouses-by-company/{clientId}', [getWarehouseByCompanyIdController::class, 'getWarehouseByCompany']); // Obtener bodegas por empresa
+
+    // STOCK
+    Route::post('/warehouse-stock-create', [warehouseCreateProductStockWarehouseController::class, 'stock_store_by_url'])->middleware('role:admin,Admin Master'); // Crear stock
+    Route::put('/warehouse-stock/{id_mlc}', [warehouseUpdateStockForWarehouseController::class, 'stock_update'])->middleware('role:admin,Admin Master'); // Actualizar stock por ID_MLC
+    Route::delete('/warehouse-stock/{id}', [warehouseDeleteStockController::class, 'stock_delete'])->middleware('role:admin,Admin Master'); // Eliminar stock
+    Route::get('/warehouse/{warehouse_id}/stock', [warehouseGetStockByWarehouseController::class, 'getStockByWarehouse']); // Obtener stock por bodega
+    Route::post('/warehouse-stock-masive/{warehouseId}', [warehouseCreateMasiveProductStockController::class, 'warehouseCreateMasiveProductStock'])->middleware('role:admin,Admin Master'); // Crear stock masivo
+
+    // STOCK CONTROLLER - GESTIÓN DE STOCK EN BODEGAS
+    Route::get('/stock/warehouse', [StockController::class, 'getWarehouseStock']); // Obtener todo el stock de bodegas
+    Route::get('/stock/warehouse/{warehouseId}', [StockController::class, 'getStockByWarehouse']); // Obtener stock de bodega específica
+    Route::post('/stock/warehouse', [StockController::class, 'createWarehouseStock'])->middleware('role:admin,Admin Master'); // Crear stock en bodega
+    Route::put('/stock/warehouse/{stockId}', [StockController::class, 'updateWarehouseStock'])->middleware('role:admin,Admin Master'); // Actualizar stock en bodega
+    Route::delete('/stock/warehouse/{stockId}', [StockController::class, 'deleteWarehouseStock'])->middleware('role:admin,Admin Master'); // Eliminar stock de bodega
+    Route::get('/stock/company/{companyId}', [StockController::class, 'getStockByCompany']); // Obtener stock por empresa
+
+    // COMPARACIÓN DE STOCK
+    Route::get('/compare-stock/{id_mlc}/{idCompany}', [getCompareStockByProductiDController::class, 'getCompareStockByProductiD']); // Comparar stock por ID_MLC y empresa
+    Route::get('/price-neto-stock/{idCompany}', [getPriceNetoStockController::class, 'getPriceNetoStock']); // Obtener precio neto de stock por empresa
+
+    // EMPRESAS
+    Route::get('/companies', [warehouseCompanyListController::class, 'company_list_all']);
+    Route::post('/companies', [warehouseNewCompanyController::class, 'company_store'])->middleware('role:admin,Admin Master'); // Crear empresa (JSON)
+    Route::post('/companies/{name}/{client_id}', [warehouseNewCompanyController::class, 'company_store_by_url'])->middleware('role:admin,Admin Master'); // Crear empresa por parámetros de URL
+    Route::get('/companies/{id}', [warehouseCompanyShowController::class, 'company_show']); // Obtener empresa
+    Route::patch('/companies/{id}', [warehouseUpdateCompanyNameController::class, 'company_update'])->middleware('role:admin,Admin Master'); // Actualizar empresa
+    Route::delete('/companies/{id}', [warehouseDeleteCompanyByIdController::class, 'company_delete'])->middleware('role:admin,Admin Master'); // Eliminar empresa
+
+    // LOGIN MERCADO LIBRE
+    Route::get('/mercadolibre/callback', [handleCallbackController::class, 'handleCallback']); // Callback de MercadoLibre
+    Route::post('/mercadolibre/login', [loginController::class, 'login']); // Generar URL de autenticación OAuth 2.0
+
+    // CONEXIONES MERCADO LIBRE
+    Route::get('/mercadolibre/test-connection/{client_id}', [testAndRefreshConnectionController::class, 'testAndRefreshConnection']); // Testear conexión
+    Route::get('/mercadolibre/conexionToken', [ConexionTokenController::class, 'index']); // Mostrar tokens
+
+    // CREDENCIALES MERCADO LIBRE
+    Route::get('/mercadolibre/credentials', [getAllCredentialsDataController::class, 'getAllCredentialsData']); // Obtener todas las credenciales
+    Route::get('/mercadolibre/credentials/{client_id}', [getCredentialsByClientIdController::class, 'getCredentialsByClientId']); // Obtener credencial por client_id
+    Route::delete('/mercadolibre/credentials/{client_id}', [deleteCredentialsController::class, 'deleteCredentials']); // Eliminar credencial por client_id
+
+    // PRODUCTOS MERCADO LIBRE
+    Route::get('/mercadolibre/products/{client_id}', [listProductByClientIdController::class, 'listProductsByClientId']); // Listar productos por client_id
+    Route::post('/mercadolibre/products/{client_id}/sync-woocommerce', [SyncWithWooCommerceController::class, 'syncProducts']); // Sincronizar productos con WooCommerce (síncrono)
+    Route::post('/mercadolibre/products/{client_id}/sync-woocommerce-async', [SyncWithWooCommerceController::class, 'syncProductsAsync']); // Sincronizar productos con WooCommerce (asíncrono)
+    Route::get('mercadolibre/categoria/{id}/atributos', [getAtributosCategoriaController::class, 'getAtributos']); // Obtener atributos por categoría
+    Route::get('/mercadolibre/products/{client_id}/catalogo', [getCatalogProductController::class, 'getCatalogProducts']); // Obtener productos del catálogo
+    Route::get('mercadolibre/categoria/{id}', [getCategoriaController::class, 'getCategoria']); // Obtener categoría
+    Route::get('mercadolibre/specs/{id}', [getSpecsDomainController::class, 'getSpecs']); // Obtener especificaciones técnicas
+    Route::get('/mercadolibre/stock/{client_id}', [getStockController::class, 'getStock']); // Obtener stock de productos
+    Route::get('/mercadolibre/save-products/{client_id}', [saveProductsController::class, 'saveProducts']); // Guardar productos
+    Route::get('/mercadolibre/products/search/{client_id}', [searchProductsController::class, 'searchProducts']); // Buscar productos
+    Route::get('/mercadolibre/categorias/{client_id}', [CreateProductsMasiveController::class, 'ListCategory']); //lista de categorias por compañia
+    Route::get('/mercadolibre/china-products', [getChinaCarrier::class, 'chinaProductsAllCompanies']); // Obtener productos de China Carrier
+    Route::get('/mercadolibre/companies-products', [getCompaniesProductsController::class, 'getPublishedProductsAllCompanies']);
+    Route::get('/mercadolibre/item-full/{client_id}/{item_id?}', [getTestproductoMLController::class, 'getItemFull']); // Obtener información completa del ítem
+
+
+    // CREACIÓN Y MODIFICACIÓN DE PRODUCTOS
+    Route::post('/mercadolibre/Products/{client_id}/crear-producto', [CreateProductController::class, 'create']); // Crear producto
+    Route::post('/mercadolibre/items', [itemController::class, 'store']); // Crear ítem
+    Route::put('/mercadolibre/items/{item_id}', [itemController::class, 'update']); // Actualizar ítem
+    Route::put('/mercadolibre/update-stock/{client_id}/{productId}', [putProductoByUpdateController::class, 'putProductoByUpdate']); // Actualizar stock
+    Route::get('/mercadolibre/carga-masiva', [getProductosExcelController::class, 'redirigir']); // Redirigir a carga masiva
+    Route::post('/mercadolibre/carga-masiva/leer-excel', [getProductosExcelController::class, 'leerExcel']); // Leer carga masiva
+    Route::post('/mercadolibre/Products', [UploadProductsToMultipleStoresController::class, 'upload']);
+
+    Route::put('/mercadolibre/update/{client_id}/{productId}', [putProductoByUpdateController::class, 'putProductoByUpdate']); // Actualizar stock
+    Route::get('/mercadolibre/carga-masiva/descargar-plantilla/{client_id}/{categoryId}', [CreateProductsMasiveController::class, 'downloadTemplate']); // Leer carga masiva
+    Route::get('/mercadolibre/size-guides/{client_id}', [CreateProductController::class, 'getSizeGuides']);
+    // CREACION, MODIFICACION Y LISTADO DE TALLAS MERCADO LIBRE
+    Route::get('/mercadolibre/sizeGrids/{client_id}', [SizeGridController::class, 'listSizeGrids']); // listar tallas
+    Route::post('/mercadolibre/sizeGrids/{client_id}', [SizeGridController::class, 'createSizeGrid']); // crear talla
+    Route::get('/mercadolibre/sizeGrids/{client_id}/{sizeGridId}', [SizeGridController::class, 'showSizeGrid']); // Mostrar talla
+    Route::delete('/mercadolibre/sizeGrids/{client_id}/{sizeGridId}', [SizeGridController::class, 'deleteSizeGrid']); // Eliminar talla
+    Route::put('/mercadolibre/sizeGrids/{client_id}/{sizeGridId}', [SizeGridController::class, 'updateSizeGrid']); // Actualizar talla
+    Route::get('/mercadolibre/domainID/{client_id}', [SizeGridController::class, 'getAvailableDomains']); //lista de dominios
+    Route::get('/mercadolibre/domainID/{domain_id}/{client_id}', [SizeGridController::class, 'getDomain']);
+
+
+    // REPORTES MERCADO LIBRE
+    Route::get('/mercadolibre/annual-sales/{client_id}', [getAnnualSalesController::class, 'getAnnualSales']); // Ventas anuales
+    Route::get('/mercadolibre/available-for-reception/{client_id}', [getAvailableForReceptionController::class, 'getAvailableForReception']); // Disponible para recepción
+    Route::get('/mercadolibre/compare-annual-sales-data/{client_id}', [compareAnnualSalesDataController::class, 'compareAnnualSalesData']); // Comparar ventas anuales
+    Route::get('/mercadolibre/compare-sales-data/{client_id}', [compareSalesDataController::class, 'compareSalesData']); // Comparar ventas mensuales
+    Route::get('/mercadolibre/client-item-list/{client_id}', [productReportController::class, 'listProductsByClientIdWithPaymentStatus']); // Reporte de productos
+    Route::get('/mercadolibre/daily-sales/{client_id}', [getDailySalesController::class, 'getDailySales']); // Ventas diarias
+    Route::get('/mercadolibre/dispatch-estimated-limit/{client_id}', [getDispatchEstimedLimitController::class, 'getDispatchEstimedLimit']); // Límite estimado de despacho
+
+    Route::get('/mercadolibre/delivered-shipments/{client_id}', [getDeliveredShipmentsController::class, 'getDeliveredShipments']);
+    Route::get('/mercadolibre/history-dispatch/{client_id}/{skuSearch}', [getHistoryDispatchController::class, 'getHistoryDispatch']); // Historial de despachos
+    Route::get('/mercadolibre/information-dispatch-delivered/{client_id}/{deliveredId}', [getInformationDispatchDeliveredController::class, 'getInformationDispatchDelivered']); // Información de despacho entregado
+    Route::get('/mercadolibre/invoices/{client_id}', [getInvoiceReportController::class, 'getInvoiceReport']); // Reporte de facturas
+    Route::get('/mercadolibre/order-statuses/{client_id}', [getOrderStatusesController::class, 'getOrderStatuses']); // Estados de orden
+    Route::get('/mercadolibre/ordenes-canceladas/{clientId}', [getCancelledOrdersController::class, 'getCancelledOrders']); // Órdenes canceladas
+    Route::get('/mercadolibre/products-to-dispatch/{client_id}', [getProductsToDispatchController::class, 'getProductsToDispatch']); // Productos por despachar
+    Route::get('/mercadolibre/refunds-by-category/{client_id}', [getRefundsByCategoryController::class, 'getRefundsByCategory']); // Reembolsos por categoría
+    Route::get('/mercadolibre/sales-by-date-range/{client_id}', [getSalesByDateRangeController::class, 'getSalesByDateRange']); // Ventas por rango de fecha
+    Route::get('/mercadolibre/sales-by-month/{client_id}', [getSalesByMonthController::class, 'getSalesByMonth']); // Ventas mensuales
+    Route::get('/mercadolibre/sales-by-week/{client_id}', [getSalesByWeekController::class, 'getSalesByWeek']); // Ventas por semana
+    Route::get('/mercadolibre/stock-critic/{client_id}', [getStockCriticController::class, 'getStockCriticController']); // Stock crítico
+    Route::get('/mercadolibre/stock-reception/{client_id}', [getStockReceptionController::class, 'getStockReception']); // Recepción de stock
+    Route::get('/mercadolibre/stock-rotation/{client_id}', [getStockRotationController::class, 'getStockRotation']); // Rotación de stock
+    Route::get('/mercadolibre/stock-sales-history/{clientId}/{productId}', [getStockSalesHistoryController::class, 'getStockSalesHistory']); // Historial de ventas por producto
+    Route::get('/mercadolibre/summary/{client_id}', [summaryController::class, 'summary']); // Resumen
+    Route::get('/mercadolibre/top-payment-methods/{client_id}', [getTopPaymentMethodsController::class, 'getTopPaymentMethods']); // Métodos de pago principales
+    Route::get('/mercadolibre/top-selling-products/{client_id}', [getTopSellingProductsController::class, 'getTopSellingProducts']); // Productos más vendidos
+    Route::get('/mercadolibre/upcoming-shipments/{client_id}', [getUpcomingShipmentsController::class, 'getUpcomingShipments']); // Próximos envíos
+    Route::get('/mercadolibre/weeks-of-month', [getWeeksOfMonthController::class, 'getWeeksOfMonth']); // Semanas del mes
+    Route::get('/mercadolibre/review/{clientId}', [ReviewController::class, 'getReviewsByClientId']); // Reseñas por cliente
+    //Route::get('/mercadolibre/products/reviews/{product_id}', [getProductReviewsController::class, 'getProductReviews']); // Reseñas por producto
+    Route::get('/mercadolibre/all-products/{client_id}', [getProductSellerController::class, 'getProductSeller']); // Obtener todos los productos por client_id
+    Route::put('/products/{client_id}/{item_id}/sku', [getProductSellerController::class, 'updateSku']); // Actualizar SKU de producto
+    Route::get('/mercadolibre/cancelled-products', [getCancelledCompaniesController::class, 'getCancelledProductsAllCompanies']); // Obtener productos cancelados de las 4 empresas
+    Route::get('/mercadolibre/get-total-sales-all-companies', [getCompaniesProductsController::class, 'getTotalSalesAllCompanies']); //Obtener total de todos los productos vendidos
+
+    // Refrescar token de MercadoLibre
+    //Route::post('/mercadolibre/refresh-token', [refreshAccessTokenController::class, 'refreshToken']);
+
+    // PUNTO DE VENTA
+    Route::get('/clients-all', [clientAllListController::class, 'clientAllList']); // Obtener todos los clientes
+    Route::get('/history-sale-pendient/{client_id}', [getHistoryPendientController::class, 'getHistoryPendient']); // Obtener historial pendiente
+    Route::get('/products-by-company/{idCompany}', [getProductByCompanyIdController::class, 'getProductByCompanyId']); // Productos por empresa
+    Route::get('/search-sale-by-folio/{companyId}', [getSearchSaleByFolioController::class, 'getSearchSaleByFolio']); // Buscar venta por folio
+    Route::get('/document-sale/{client_id}/{id_folio}', [getDocumentByDownloadController::class, 'getDocumentByDownload']); // Descargar documento de venta
+    Route::get('/history-sale-issue/{client_id}', [getAllHistorySaleIssueController::class, 'getAllHistorySaleIssue']); // Obtener historial de ventas emitidas
+    Route::get('/history-sale-finish/{client_id}', [getAllHistorySaleFinishController::class, 'getAllHistorySaleFinish']); // Obtener historial de ventas finalizadas
+
+    Route::post('/create-new-client', [createNewClientController::class, 'createNewClient']); // Crear cliente
+    Route::post('/generated-sale-note/{status}', [generatedSaleNoteController::class, 'generatedSaleNote']); // Generar nota de venta
+    Route::post('/document-sale', [postDocumentSaleController::class, 'postDocumentSale']); // Subir documento de venta
+
+    Route::delete('/delete-history-sale/{companyId}/{saleId}', [getDeleteHistoryByIdSaleController::class, 'getDeleteHistoryByIdSale']); // Eliminar historial por ID
+    Route::patch('/generated-sale-note/{saleId}/{status}', [PutSaleNoteController::class, 'putSaleNote']); // Actualizar estado de venta
+    Route::patch('/sale-note-patch/{saleId}/{status}', [getHistorySalePatchStatusController::class, 'getHistorySalePatchStatus']); // Actualizar estado de venta
+    Route::put('/sale-note/{companyId}/{folio}', [putSaleNoteByFolioController::class, 'putSaleNoteByFolio']); // Actualizar nota de venta por folio
+    //test
+    // Route::get('/test/{clientId}', [testingController::class, 'testingGet']); //para probar endpoint de mercadolibre de forma directa
+    // Route::post('/test/{clientId}', [testingController::class, 'testingPost']); //test controller post 
+    // WooCommerce
+    Route::get('/woocommerce/woo/{storeId}/products', [WooStoreController::class, 'getProductsWooCommerce']); // Obtener productos de WooCommerce
+    Route::post('/woocommerce/woo-stores', [WooStoreController::class, 'storeWoocommerce']); // Registrar tienda WooCommerce
+    Route::get('/woocommerce/woo-stores', [WooStoreController::class, 'getStores']); // Listar tiendas WooCommerce
+
+
+    Route::put('/woocommerce/woo/{storeId}/product/{productId}', [WooProductController::class, 'updateProduct']); // Modificar producto en WooCommerce
+    Route::post('/woocommerce/woo/{storeId}/product', [WooProductController::class, 'createProduct']); // Crear producto en WooCommerce
+    Route::post('/woocommerce/woo/{storeId}/variable-product', [WooProductController::class, 'createVariableProduct']); // Crear producto variable en WooCommerce
+    Route::delete('/woocommerce/woo/{storeId}/product/{productId}', [WooProductController::class, 'deleteProduct']); // Eliminar producto en WooCommerce
+    Route::get('/woocommerce/woo/{storeId}/product/{productId}', [WooProductController::class, 'getProduct']);
+    Route::get('/woocommerce/woo/{storeId}/productc-list', [WooProductController::class, 'listProducts']); //listar productos de WooCommerce
+    Route::get('/woocommerce/woo/{storeId}/variable-products', [WooProductController::class, 'listVariableProducts']); //listar solo productos variables
+
+    // ASIGNACIÓN DE PRODUCTOS A BODEGAS
+    Route::post('/woocommerce/woo/{storeId}/product/{productId}/assign-warehouse', [WooProductController::class, 'assignProductToWarehouse']); // Asignar producto existente a bodega
+    Route::post('/woocommerce/woo/{storeId}/product-create-assign-warehouse', [WooProductController::class, 'createProductAndAssignToWarehouse']); // Crear producto y asignar a bodega
+    Route::get('/woocommerce/woo/{storeId}/warehouse/{warehouseId}/products', [WooProductController::class, 'getProductsByWarehouse']); // Obtener productos por bodega
+    Route::post('/woocommerce/woo/{storeId}/assign-warehouse-masive', [\App\Http\Controllers\Woocommerce\WooProductController::class, 'assignWarehouseMasive']);
+    //categorias wooComerce
+    Route::Get('/woocommerce/woo/{storeId}/categories', [WooCategoryController::class, 'listCategories']);
+    Route::Get('/woocommerce/woo/{storeId}/category/{categoryId}', [WooCategoryController::class, 'getCategory']);
+    Route::Post('/woocomerce/{storeId}/category', [WooCategoryController::class, 'createCategory']);
+    Route::Put('/woocommerce/woo/{storeId}/category/{categoryId}', [WooCategoryController::class, 'updateCategory']);
+    Route::Delete('/woocommerce/woo/{storeId}/category/{categoryId}', [WooCategoryController::class, 'deleteCategory']);
+    Route::Get('/woocommerce/woo/{storeId}/category/{categoryId}/can-delete', [WooCategoryController::class, 'canDeleteCategory']);
+
+
+    Route::get('/woocommerce/woo/{storeId}/product/{productId}/variation-list', [WooProductController::class, 'listVariations']); // Listar variaciones de producto
+    Route::post('/woocommerce/woo/{storeId}/product/{productId}/variation', [WooProductController::class, 'createVariation']); // Crear variación de producto
+    Route::delete('/woocommerce/woo/{storeId}/product/{productId}/variation/{variationId}', [WooProductController::class, 'deleteVariation']); // Eliminar variación de producto
+    Route::get('/woocommerce/woo/{storeId}/products-not-in-warehouse/export', [\App\Http\Controllers\Woocommerce\WooProductController::class, 'exportProductsNotInWarehouse']);
+    Route::get('/woocommerce/woo/export-all-products-all-stores', [\App\Http\Controllers\Woocommerce\WooProductController::class, 'exportAllProductsFromAllStores']);
+    Route::get('/woocommerce/woo/export-products-test', [\App\Http\Controllers\Woocommerce\WooProductController::class, 'exportProductsFromFirstStores']);
+    
+    // Endpoints para productos por SKU en todas las tiendas
+    Route::get('/woocommerce/woo/products-by-sku', [\App\Http\Controllers\Woocommerce\WooProductController::class, 'getProductsBySkuAllStores']);
+    Route::put('/woocommerce/woo/products-by-sku', [\App\Http\Controllers\Woocommerce\WooProductController::class, 'updateProductsBySkuAllStores']);
+    
+    // Endpoints para crear y eliminar productos en todas las tiendas
+    Route::post('/woocommerce/woo/create-product-all-stores', [\App\Http\Controllers\Woocommerce\WooProductController::class, 'createProductAllStores']); // Crear producto en todas las tiendas
+    Route::delete('/woocommerce/woo/delete-product-by-sku-all-stores', [\App\Http\Controllers\Woocommerce\WooProductController::class, 'deleteProductBySkuAllStores']); // Eliminar producto por SKU en todas las tiendas
+    
+    // Endpoint de debugging para listar SKUs disponibles
+    Route::get('/woocommerce/woo/list-available-skus', [\App\Http\Controllers\Woocommerce\WooProductController::class, 'listAvailableSkus']);
+
+});
