@@ -114,6 +114,7 @@ class getProductSellerController extends Controller
                             ];
                         })->toArray()
                     ]],
+                    'cantidad' => 1,
                     'cantidad_total' => 1,
                 ]);
             }
@@ -122,6 +123,7 @@ class getProductSellerController extends Controller
                 'status' => 'success',
                 'message' => 'No se encontró producto con ese ID.',
                 'products' => [],
+                'cantidad' => 0,
                 'cantidad_total' => 0,
             ]);
         }
@@ -208,6 +210,7 @@ class getProductSellerController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Productos obtenidos correctamente.',
+            'cantidad' => $total,
             'cantidad_total' => $total,
             'cantidad_mostrada' => count($allProducts),
             'limit' => $limit,
