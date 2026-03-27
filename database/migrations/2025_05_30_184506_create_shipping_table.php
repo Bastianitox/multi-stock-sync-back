@@ -28,7 +28,7 @@ return new class extends Migration
 
             // Clave foránea a sale (venta)
             $table->foreign('venta_id')
-                ->references('id')->on('sale')
+                ->references('id')->on('sales')
                 ->onUpdate('restrict')
                 ->onDelete('restrict');
 

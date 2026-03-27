@@ -21,7 +21,7 @@ return new class extends Migration
                 $table->string('telefono');
                 $table->string('email');
                 $table->string('ciudad');
-                $table->foreignId('venta_id')->unique()->constrained('sale');
+                $table->foreignId('venta_id')->unique()->constrained('sales');
                 $table->timestamps();
             });
         }
