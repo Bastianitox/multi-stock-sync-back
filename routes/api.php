@@ -250,7 +250,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/companies/{id}', [warehouseDeleteCompanyByIdController::class, 'company_delete'])->middleware('role:admin,Admin Master'); // Eliminar empresa
 
     // LOGIN MERCADO LIBRE
-    Route::get('/mercadolibre/callback', [handleCallbackController::class, 'handleCallback']); // Callback de MercadoLibre
+    Route::get('/mercadolibre/callback', [handleCallbackController::class, 'handleCallback']); // Callback de MercadoLibre (ruta legacy)
+    Route::get('/mercadolibre/auth', [handleCallbackController::class, 'handleCallback']); // Callback de MercadoLibre (ruta principal)
     Route::post('/mercadolibre/login', [loginController::class, 'login']); // Generar URL de autenticación OAuth 2.0
 
     // CONEXIONES MERCADO LIBRE
