@@ -29,37 +29,47 @@ class getProductSellerController extends Controller
 
         // ✅ Refrescar token automáticamente si está vencido
         if ($credentials->isTokenExpired()) {
-            $refreshResponse = Http::asForm()->post('https://api.mercadolibre.com/oauth/token', [
+            // Usar las credenciales almacenadas en el registro, no del env, ya que cada conexión puede tener las suyas
+            $refreshResponse = Http::asForm()->timeout(20)->post('https://api.mercadolibre.com/oauth/token', [
                 'grant_type' => 'refresh_token',
-                'client_id' => env('MELI_CLIENT_ID'),
-                'client_secret' => env('MELI_CLIENT_SECRET'),
+                'client_id' => $credentials->client_id,
+                'client_secret' => $credentials->client_secret,
                 'refresh_token' => $credentials->refresh_token,
             ]);
 
             if ($refreshResponse->failed()) {
-                return response()->json(['error' => 'No se pudo refrescar el token'], 401);
+                Log::error("Fallo al refrescar token ML para client_id: $client_id. Error: " . $refreshResponse->body());
+                return response()->json(['error' => 'No se pudo refrescar el token de Mercado Libre'], 401);
             }
 
             $data = $refreshResponse->json();
             $credentials->update([
                 'access_token' => $data['access_token'],
-                'refresh_token' => $data['refresh_token'],
+                'refresh_token' => $data['refresh_token'] ?? $credentials->refresh_token,
                 'expires_at' => now()->addSeconds($data['expires_in']),
             ]);
         }
 
         // Obtener ID del usuario
         $userResponse = Http::withToken($credentials->access_token)
+            ->timeout(20)
             ->get("https://api.mercadolibre.com/users/me");
 
         if ($userResponse->failed()) {
+            Log::error("Error al obtener /users/me en ML: " . $userResponse->body());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Error al obtener información del usuario.',
+                'message' => 'Error al obtener información del usuario desde Mercado Libre.',
             ], 500);
         }
 
-        $userId = $userResponse->json()['id'];
+        $userData = $userResponse->json();
+        $userId = $userData['id'] ?? null;
+        
+        if (!$userId) {
+            return response()->json(['error' => 'No se pudo obtener el ID de usuario de Mercado Libre'], 500);
+        }
+
         $limit = intval($request->query('limit', 50));
         // Asegurarnos que el limite no supere los 50 permitidos por ML items/search
         if ($limit > 50) $limit = 50;
@@ -70,6 +80,7 @@ class getProductSellerController extends Controller
         // 🔍 Buscar por ID exacto si comienza con MLC
         if (!empty($q) && str_starts_with(strtoupper($q), 'MLC')) {
             $productResponse = Http::withToken($credentials->access_token)
+                ->timeout(20)
                 ->get("https://api.mercadolibre.com/items/{$q}");
 
             if ($productResponse->ok()) {
@@ -86,8 +97,9 @@ class getProductSellerController extends Controller
                         'available_quantity' => $productData['available_quantity'],
                         'condition' => $productData['condition'],
                         'status' => $productData['status'],
-                        'pictures' => $productData['pictures'],
-                        'atributes' => $productData['attributes'],
+                        'pictures' => $productData['pictures'] ?? [],
+                        'thumbnail' => $productData['thumbnail'] ?? '',
+                        'attributes' => $productData['attributes'] ?? [],
                         'permalink' => $productData['permalink'],
                         'sku' => $productData['seller_custom_field'] ?? 'No disponible', // SKU principal
                         'variations' => collect($productData['variations'] ?? [])->map(function ($v) {
@@ -95,7 +107,7 @@ class getProductSellerController extends Controller
                                 'variation_id' => $v['id'],
                                 'seller_custom_field' => $v['seller_custom_field'] ?? 'No disponible',
                                 'seller_sku' => $v['seller_sku'] ?? 'No disponible',
-                                'sku' => $v['seller_custom_field'] ?? 'No disponible', // puedes ajustar si tu lógica define otro campo
+                                'sku' => $v['seller_custom_field'] ?? 'No disponible',
                                 'available_quantity' => $v['available_quantity'],
                                 'pictures' => $v['picture_ids'] ?? [],
                                 'attribute_combinations' => $v['attribute_combinations'] ?? []
@@ -122,6 +134,7 @@ class getProductSellerController extends Controller
         if (!empty($q)) $params['q'] = $q;
 
         $searchResponse = Http::withToken($credentials->access_token)
+            ->timeout(20)
             ->get("https://api.mercadolibre.com/users/{$userId}/items/search", $params);
 
         if ($searchResponse->failed()) {
@@ -137,12 +150,12 @@ class getProductSellerController extends Controller
         $allProducts = [];
 
         // Optimización: Obtener los detalles de los productos por lotes (multiget) en vez de 1 por 1
-        // Mercado Libre permite hasta 20 IDs por petición multiget
         $chunks = array_chunk($productIds, 20);
 
         foreach ($chunks as $chunk) {
             $idsParam = implode(',', $chunk);
             $productResponse = Http::withToken($credentials->access_token)
+                ->timeout(20)
                 ->get("https://api.mercadolibre.com/items", [
                     'ids' => $idsParam,
                     'include_attributes' => 'all'
@@ -151,34 +164,37 @@ class getProductSellerController extends Controller
             if ($productResponse->ok()) {
                 $items = $productResponse->json();
                 
-                foreach ($items as $itemWrapper) {
-                    if (isset($itemWrapper['code']) && $itemWrapper['code'] == 200 && isset($itemWrapper['body'])) {
-                        $productData = $itemWrapper['body'];
-                        
-                        $allProducts[] = [
-                            'id' => $productData['id'],
-                            'title' => $productData['title'],
-                            'price' => $productData['price'],
-                            'date_created' => $productData['date_created'] ?? '2000-01-01T00:00:00.000Z',
-                            'available_quantity' => $productData['available_quantity'],
-                            'condition' => $productData['condition'],
-                            'status' => $productData['status'],
-                            'pictures' => $productData['pictures'] ?? [],
-                            'attributes' => $productData['attributes'] ?? [], 
-                            'permalink' => $productData['permalink'] ?? '',
-                            'sku' => $productData['seller_custom_field'] ?? 'No disponible', // SKU principal
-                            'variations' => collect($productData['variations'] ?? [])->map(function ($v) {
-                                return [
-                                    'variation_id' => $v['id'],
-                                    'seller_custom_field' => $v['seller_custom_field'] ?? 'No disponible',
-                                    'seller_sku' => $v['seller_sku'] ?? 'No disponible',
-                                    'sku' => $v['seller_custom_field'] ?? 'No disponible', // puedes ajustar si tu lógica define otro campo
-                                    'available_quantity' => $v['available_quantity'],
-                                    'pictures' => $v['picture_ids'] ?? [],
-                                    'attribute_combinations' => $v['attribute_combinations'] ?? []
-                                ];
-                            })->toArray()
-                        ];
+                if (is_array($items)) {
+                    foreach ($items as $itemWrapper) {
+                        if (isset($itemWrapper['code']) && $itemWrapper['code'] == 200 && isset($itemWrapper['body'])) {
+                            $productData = $itemWrapper['body'];
+                            
+                            $allProducts[] = [
+                                'id' => $productData['id'],
+                                'title' => $productData['title'],
+                                'price' => $productData['price'],
+                                'date_created' => $productData['date_created'] ?? '2000-01-01T00:00:00.000Z',
+                                'available_quantity' => $productData['available_quantity'],
+                                'condition' => $productData['condition'],
+                                'status' => $productData['status'],
+                                'pictures' => $productData['pictures'] ?? [],
+                                'thumbnail' => $productData['thumbnail'] ?? '',
+                                'attributes' => $productData['attributes'] ?? [], 
+                                'permalink' => $productData['permalink'] ?? '',
+                                'sku' => $productData['seller_custom_field'] ?? 'No disponible',
+                                'variations' => collect($productData['variations'] ?? [])->map(function ($v) {
+                                    return [
+                                        'variation_id' => $v['id'],
+                                        'seller_custom_field' => $v['seller_custom_field'] ?? 'No disponible',
+                                        'seller_sku' => $v['seller_sku'] ?? 'No disponible',
+                                        'sku' => $v['seller_custom_field'] ?? 'No disponible',
+                                        'available_quantity' => $v['available_quantity'],
+                                        'pictures' => $v['picture_ids'] ?? [],
+                                        'attribute_combinations' => $v['attribute_combinations'] ?? []
+                                    ];
+                                })->toArray()
+                            ];
+                        }
                     }
                 }
             }
