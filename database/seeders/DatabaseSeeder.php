@@ -47,7 +47,9 @@ class DatabaseSeeder extends Seeder
             \App\Models\User::updateOrCreate(
                 ['email' => 'admin@multistock.cl'],
                 [
-                    'name' => 'Admin Master',
+                    'nombre' => 'Admin',
+                    'apellidos' => 'Master',
+                    'telefono' => '123456789',
                     'password' => \Illuminate\Support\Facades\Hash::make('Admin123!'),
                     'role_id' => $adminMasterRol->id,
                 ]
