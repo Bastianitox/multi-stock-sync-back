@@ -7,13 +7,18 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
+     * Disable transactions to see the real Postgres error.
+     */
+    public $withinTransaction = false;
+
+    /**
      * Run the migrations.
      */
     public function up(): void
     {
         Schema::create('personal_access_tokens', function (Blueprint $table) {
             $table->id();
-            $table->morphs('tokenable');
+            $table->morphs('tokenable', 'tokens_tokenable_index');
             $table->string('name');
             $table->string('token', 64)->unique();
             $table->text('abilities')->nullable();
