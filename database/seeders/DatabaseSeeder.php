@@ -43,6 +43,16 @@ class DatabaseSeeder extends Seeder
             // Buscamos los usuarios John Doe creados originalmente
             \App\Models\User::query()->update(['role_id' => $adminMasterRol->id]);
             
+            // Crear o actualizar un usuario administrador maestro por defecto
+            \App\Models\User::updateOrCreate(
+                ['email' => 'admin@multistock.cl'],
+                [
+                    'name' => 'Admin Master',
+                    'password' => \Illuminate\Support\Facades\Hash::make('Admin123!'),
+                    'role_id' => $adminMasterRol->id,
+                ]
+            );
+
             // También intentamos con el ID 26 por si acaso
             $user26 = \App\Models\User::find(26);
             if ($user26) {
