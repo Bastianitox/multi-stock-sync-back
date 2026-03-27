@@ -17,7 +17,7 @@ chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 php artisan key:generate --force --no-interaction 2>/dev/null || true
 
 # Run migrations
-php artisan migrate:fresh --force --no-interaction
+php artisan migrate --force --no-interaction
 
 # Run seeders (roles, etc.)
 php artisan db:seed --force --no-interaction 2>/dev/null || true
