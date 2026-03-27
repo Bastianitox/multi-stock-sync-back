@@ -31,8 +31,8 @@ class getProductSellerController extends Controller
         if ($credentials->isTokenExpired()) {
             $refreshResponse = Http::asForm()->post('https://api.mercadolibre.com/oauth/token', [
                 'grant_type' => 'refresh_token',
-                'client_id' => $credentials->client_id,
-                'client_secret' => $credentials->client_secret,
+                'client_id' => env('MELI_CLIENT_ID'),
+                'client_secret' => env('MELI_CLIENT_SECRET'),
                 'refresh_token' => $credentials->refresh_token,
             ]);
 
@@ -61,11 +61,14 @@ class getProductSellerController extends Controller
 
         $userId = $userResponse->json()['id'];
         $limit = intval($request->query('limit', 50));
+        // Asegurarnos que el limite no supere los 50 permitidos por ML items/search
+        if ($limit > 50) $limit = 50;
+        
         $offset = intval($request->query('offset', 0));
         $q = $request->query('q');
 
         // 🔍 Buscar por ID exacto si comienza con MLC
-        if ($q && str_starts_with(strtoupper($q), 'MLC')) {
+        if (!empty($q) && str_starts_with(strtoupper($q), 'MLC')) {
             $productResponse = Http::withToken($credentials->access_token)
                 ->get("https://api.mercadolibre.com/items/{$q}");
 
@@ -116,7 +119,7 @@ class getProductSellerController extends Controller
             'limit' => $limit,
             'offset' => $offset
         ];
-        if ($q) $params['q'] = $q;
+        if (!empty($q)) $params['q'] = $q;
 
         $searchResponse = Http::withToken($credentials->access_token)
             ->get("https://api.mercadolibre.com/users/{$userId}/items/search", $params);
@@ -124,12 +127,12 @@ class getProductSellerController extends Controller
         if ($searchResponse->failed()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Error al obtener los productos.',
+                'message' => 'Error al obtener los productos desde mercado libre. ' . $searchResponse->body(),
             ], 500);
         }
 
         $searchData = $searchResponse->json();
-        $productIds = $searchData['results'];
+        $productIds = $searchData['results'] ?? [];
         $total = $searchData['paging']['total'] ?? count($productIds);
         $allProducts = [];
 
