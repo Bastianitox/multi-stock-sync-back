@@ -47,9 +47,8 @@ class loginController
             ]
         );
 
-        // Generate a unique state
-        $state = bin2hex(random_bytes(16));
-        Cache::put("mercadolibre_state_{$state}", $credentials->id, now()->addMinutes(10));
+        // We use the client_id as the state to ensure statelessness across instances/local 
+        $state = $credentials->client_id;
 
         // Generate Auth URL
         $redirectUri = env('MERCADO_LIBRE_REDIRECT_URI');

@@ -25,21 +25,15 @@ class handleCallbackController
             ], 400);
         }
 
-        // Retrieve credentials ID from cache using the state
-        $credentialId = Cache::pull("mercadolibre_state_{$state}");
-        if (!$credentialId) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'El state es inválido o expiró.',
-            ], 400);
-        }
-
-        $credentials = MercadoLibreCredential::find($credentialId);
+        // The state now contains the client_id, removing Cache dependency
+        $clientId = $state;
+        
+        $credentials = MercadoLibreCredential::where('client_id', $clientId)->first();
         if (!$credentials) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Credenciales no encontradas.',
-            ], 500);
+                'message' => 'Credenciales no encontradas para este ID de cliente.',
+            ], 404);
         }
 
         // Exchange authorization code for tokens
