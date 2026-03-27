@@ -1,23 +1,15 @@
 <?php
 require __DIR__.'/vendor/autoload.php';
 $app = require_once __DIR__.'/bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel->bootstrap();
 
-$user = \App\Models\User::first();
-if (!$user) {
-    echo "No user in database.";
-    exit;
-}
-$token = $user->createToken('test-token')->plainTextToken;
-
-$request = Illuminate\Http\Request::create('/api/mercadolibre/all-products/7365610229928727?offset=0&limit=100', 'GET');
-$request->headers->set('Accept', 'application/json');
-$request->headers->set('Authorization', 'Bearer ' . $token);
-
+$request = Illuminate\Http\Request::create('/api/mercadolibre/all-products/7365610229928727?offset=0&limit=50', 'GET');
+$controller = new \App\Http\Controllers\MercadoLibre\Reportes\getProductSellerController();
 try {
-    $response = $kernel->handle($request);
+    $response = $controller->getProductSeller($request, '7365610229928727');
     echo "Status: " . $response->getStatusCode() . "\n";
-    echo substr($response->getContent(), 0, 500); // only print first 500 chars to avoid huge payload
+    echo substr($response->getContent(), 0, 500); // Only print first 500 chars
 } catch (\Throwable $e) {
-    echo "ERROR MESSAGE:\n" . $e->getMessage() . "\n" . $e->getTraceAsString();
+    echo "FATAL ERROR:\n" . $e->getMessage() . "\n" . $e->getFile() . ":" . $e->getLine() . "\n" . $e->getTraceAsString();
 }

@@ -136,39 +136,51 @@ class getProductSellerController extends Controller
         $total = $searchData['paging']['total'] ?? count($productIds);
         $allProducts = [];
 
-        foreach ($productIds as $productId) {
+        // Optimización: Obtener los detalles de los productos por lotes (multiget) en vez de 1 por 1
+        // Mercado Libre permite hasta 20 IDs por petición multiget
+        $chunks = array_chunk($productIds, 20);
+
+        foreach ($chunks as $chunk) {
+            $idsParam = implode(',', $chunk);
             $productResponse = Http::withToken($credentials->access_token)
-                 ->get("https://api.mercadolibre.com/items/{$productId}?include_attributes=all");
+                ->get("https://api.mercadolibre.com/items", [
+                    'ids' => $idsParam,
+                    'include_attributes' => 'all'
+                ]);
 
             if ($productResponse->ok()) {
-                $productData = $productResponse->json();
-
-                $sku = $productData['seller_custom_field'] ?? 'No disponible';
-
-                $allProducts[] = [
-                    'id' => $productData['id'],
-                    'title' => $productData['title'],
-                    'price' => $productData['price'],
-                    'date_created' => $productData['date_created'],
-                    'available_quantity' => $productData['available_quantity'],
-                    'condition' => $productData['condition'],
-                    'status' => $productData['status'],
-                    'pictures' => $productData['pictures'],
-                    'attributes' => $productData['attributes'], 
-                    'permalink' => $productData['permalink'],
-                    'sku' => $productData['seller_custom_field'] ?? 'No disponible', // SKU principal
-                        'variations' => collect($productData['variations'] ?? [])->map(function ($v) {
-                            return [
-                                'variation_id' => $v['id'],
-                                'seller_custom_field' => $v['seller_custom_field'] ?? 'No disponible',
-                                'seller_sku' => $v['seller_sku'] ?? 'No disponible',
-                                'sku' => $v['seller_custom_field'] ?? 'No disponible', // puedes ajustar si tu lógica define otro campo
-                                'available_quantity' => $v['available_quantity'],
-                                'pictures' => $v['picture_ids'] ?? [],
-                                'attribute_combinations' => $v['attribute_combinations'] ?? []
-                            ];
-                        })->toArray()
-                            ];
+                $items = $productResponse->json();
+                
+                foreach ($items as $itemWrapper) {
+                    if (isset($itemWrapper['code']) && $itemWrapper['code'] == 200 && isset($itemWrapper['body'])) {
+                        $productData = $itemWrapper['body'];
+                        
+                        $allProducts[] = [
+                            'id' => $productData['id'],
+                            'title' => $productData['title'],
+                            'price' => $productData['price'],
+                            'date_created' => $productData['date_created'] ?? '2000-01-01T00:00:00.000Z',
+                            'available_quantity' => $productData['available_quantity'],
+                            'condition' => $productData['condition'],
+                            'status' => $productData['status'],
+                            'pictures' => $productData['pictures'] ?? [],
+                            'attributes' => $productData['attributes'] ?? [], 
+                            'permalink' => $productData['permalink'] ?? '',
+                            'sku' => $productData['seller_custom_field'] ?? 'No disponible', // SKU principal
+                            'variations' => collect($productData['variations'] ?? [])->map(function ($v) {
+                                return [
+                                    'variation_id' => $v['id'],
+                                    'seller_custom_field' => $v['seller_custom_field'] ?? 'No disponible',
+                                    'seller_sku' => $v['seller_sku'] ?? 'No disponible',
+                                    'sku' => $v['seller_custom_field'] ?? 'No disponible', // puedes ajustar si tu lógica define otro campo
+                                    'available_quantity' => $v['available_quantity'],
+                                    'pictures' => $v['picture_ids'] ?? [],
+                                    'attribute_combinations' => $v['attribute_combinations'] ?? []
+                                ];
+                            })->toArray()
+                        ];
+                    }
+                }
             }
         }
 
