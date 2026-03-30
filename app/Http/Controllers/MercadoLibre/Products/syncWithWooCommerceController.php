@@ -18,8 +18,8 @@ use App\Jobs\SyncProductsJob;
 
 class SyncWithWooCommerceController extends Controller
 {
-    private $batchSize = 20; // Reducir tamaño de lote para mejor rendimiento
-    private $maxProductsPerBatch = 10; // Máximo productos por lote de sincronización
+    private $batchSize = 50; // Se aumentó a 50 para traer los primeros 50 productos de ML
+    private $maxProductsPerBatch = 25; // Máximo productos por lote de sincronización
 
     public function __construct()
     {
@@ -113,12 +113,12 @@ class SyncWithWooCommerceController extends Controller
                                 $sku = $mlProduct['model'] ?? '';
                                 
                                 if (empty($sku)) {
-                                    $storeResult['products_skipped']++;
-                                    Log::warning('Producto sin SKU, saltando', [
+                                    // Si el producto no tiene un SKU en ML, usamos su ID de ML como SKU por defecto
+                                    $sku = $mlProduct['id'];
+                                    Log::info('Producto sin SKU en ML, usando el ID de MercadoLibre como SKU', [
                                         'ml_product_id' => $mlProduct['id'],
                                         'title' => $mlProduct['title']
                                     ]);
-                                    continue;
                                 }
 
                                 // Buscar producto existente por SKU
