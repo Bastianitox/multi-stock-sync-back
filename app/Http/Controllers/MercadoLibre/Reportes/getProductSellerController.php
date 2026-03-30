@@ -14,6 +14,8 @@ class getProductSellerController extends Controller
     public function getProductSeller(Request $request, $client_id)
     {
         try {
+            set_time_limit(120);
+            
             // Cachear credenciales por 10 minutos
             $cacheKey = 'ml_credentials_' . $client_id;
             $credentials = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($client_id) {
@@ -144,10 +146,10 @@ class getProductSellerController extends Controller
                 foreach ($chunks as $chunk) {
                     $idsParam = implode(',', $chunk);
                     $productResponse = Http::withToken($credentials->access_token)
-                        ->timeout(20)
+                        ->timeout(15)
                         ->get("https://api.mercadolibre.com/items", [
                             'ids' => $idsParam,
-                            'include_attributes' => 'all'
+                            'attributes' => 'id,title,price,available_quantity,status,thumbnail,attributes,permalink,seller_custom_field,variations,condition,date_created'
                         ]);
 
                     if ($productResponse->ok()) {
