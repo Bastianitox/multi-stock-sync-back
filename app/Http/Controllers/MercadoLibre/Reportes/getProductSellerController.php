@@ -190,6 +190,14 @@ class getProductSellerController extends Controller
             return response()->json([
                 'status' => 'success',
                 'cantidad' => $total,
+                'cantidad_mostrada' => count($allProducts),
+                'debug_info' => [
+                    'userId' => $userId,
+                    'search_total' => $total,
+                    'ids_found' => count($productIds),
+                    'first_id' => !empty($productIds) ? $productIds[0] : null,
+                    'all_products_count' => count($allProducts)
+                ],
                 'products' => $allProducts,
             ], 200);
 
