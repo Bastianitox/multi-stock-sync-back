@@ -14,12 +14,9 @@ class getProductSellerController extends Controller
     public function getProductSeller(Request $request, $client_id)
     {
         try {
-            set_time_limit(120);
-            
             // Cachear credenciales por 10 minutos
             $cacheKey = 'ml_credentials_' . $client_id;
             $credentials = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($client_id) {
-                Log::info("Consultando credenciales Mercado Libre en MySQL para client_id: $client_id");
                 return MercadoLibreCredential::where('client_id', $client_id)->first();
             });
 
@@ -40,8 +37,7 @@ class getProductSellerController extends Controller
                 ]);
 
                 if ($refreshResponse->failed()) {
-                    Log::error("Fallo al refrescar token ML para client_id: $client_id. Error: " . $refreshResponse->body());
-                    return response()->json(['error' => 'No se pudo refrescar el token de Mercado Libre'], 401);
+                    return response()->json(['error' => 'No se pudo refrescar el token de Mercado Libre: ' . $refreshResponse->body()], 401);
                 }
 
                 $data = $refreshResponse->json();
@@ -58,10 +54,9 @@ class getProductSellerController extends Controller
                 ->get("https://api.mercadolibre.com/users/me");
 
             if ($userResponse->failed()) {
-                Log::error("Error al obtener /users/me en ML: " . $userResponse->body());
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Error al obtener información del usuario desde Mercado Libre.',
+                    'message' => 'Error al obtener información del usuario desde Mercado Libre: ' . $userResponse->body(),
                 ], 500);
             }
 
@@ -204,7 +199,6 @@ class getProductSellerController extends Controller
             ], 200);
 
         } catch (\Throwable $e) {
-            Log::error("FATAL ERROR en getProductSeller: " . $e->getMessage() . "\n" . $e->getTraceAsString());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Error interno en el servidor: ' . $e->getMessage(),
