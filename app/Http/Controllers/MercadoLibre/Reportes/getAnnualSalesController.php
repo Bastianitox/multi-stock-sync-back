@@ -113,7 +113,7 @@ class getAnnualSalesController
                     'quantity' => $item['quantity'],  // Quantity sold
                     'price' => $item['unit_price'],   // Price per unit
                 ];
-                }
+                } // Hola
             }
             $offset += $limit;
         }while(count($orders) === $limit);
